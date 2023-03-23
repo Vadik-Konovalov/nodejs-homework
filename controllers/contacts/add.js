@@ -1,9 +1,8 @@
-const { contactsOperations } = require("../../model")
-const newError = require("../../model/newError")
-const { contactSchema } = require("../../schemas")
+const { Contact } = require("../../models")
 
 const add = async (req, res, next) => {
-    const result = await contactsOperations.add(req.body)
+    req.body.owner = req.user._id
+    const result = await Contact.create(req.body)
     res.status(201).json({
         status: 'success',
         code: 201,

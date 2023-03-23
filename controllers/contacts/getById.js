@@ -1,9 +1,10 @@
-const { contactsOperations } = require("../../model")
-const newError = require("../../model/newError")
+const { Contact } = require("../../models")
+const newError = require("../../utils/newError")
+const { what, how } = require("./populate")
 
 const getById = async (req, res, next) => {
     const { id } = req.params
-    const result = await contactsOperations.getById(id)
+    const result = await Contact.findById(id).populate(what, how)
     if (!result) {
         const message = `Contact whith id:${id} not found`
         newError(404, message)

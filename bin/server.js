@@ -1,9 +1,16 @@
+const mongoose = require('mongoose')
+
 const app = require('../app')
-const contactsPath = require('../db/contacts')
-const { parseJsonData } = require('../model')
 
-const {PORT = 3000} = process.env
+const { DB_HOST, PORT = 3000 } = process.env
 
-app.listen(PORT, () => {
-    console.log(`Server runing. Use our API on port: ${PORT}`)
-})
+mongoose.set('strictQuery', true)
+mongoose.connect(DB_HOST)
+    .then(() => {
+        console.log("Database connection successful")
+        app.listen(PORT)
+    })
+    .catch((err) => {
+        console.log(err.message)
+        process.exit(1)
+    })

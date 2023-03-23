@@ -1,11 +1,12 @@
-const { contactsOperations } = require("../../model")
-const newError = require("../../model/newError")
+const { Contact } = require("../../models")
+const newError = require("../../utils/newError")
+const { what, how } = require("./populate")
 
 const deleteById = async (req, res, next) => {
-    const { id } = req.params
-    const result = await contactsOperations.deleteById(id)
+    const { params: { id }, user } = req
+    const result = await Contact.findOneAndDelete({_id: id, owner: user._id}).populate(what, how)
     if (!result) {
-        const message = `Contact whith id:${id} not found`
+        const message = `Contact whith id:${id} not found or you is not owner`
         newError(404, message)
     }
     res.json({

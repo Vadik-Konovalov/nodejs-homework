@@ -2,9 +2,9 @@ const { Contact } = require("../../models")
 const newError = require("../../utils/newError")
 const { what, how } = require("./populate")
 
-const updateById = async (req, res, next) => {
-    const { body, params: { id }, user} = req
-    const result = await Contact.findOneAndUpdate({_id:id, owner: user._id}, body, {new: true}).populate(what, how)
+const patchFavoriteById = async (req, res, next) => {
+    const { body: { favorite }, params: { id }, user } = req
+    const result = await Contact.findOneAndUpdate({_id: id, owner: user._id}, { favorite }, { new: true }).populate(what, how)
     if (!result) {
         const message = `Contact whith id:${id} not found`
         newError(404, message)
@@ -18,4 +18,4 @@ const updateById = async (req, res, next) => {
     })
 }
 
-module.exports = updateById
+module.exports = patchFavoriteById
