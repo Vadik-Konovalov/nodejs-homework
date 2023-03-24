@@ -1,9 +1,6 @@
-const jwt = require("jsonwebtoken")
-
 const {User} = require("../models")
 const verifyJWT = require("../utils/jwt/verifyJWT")
 const newError = require("../utils/newError")
-const {SECRET_KEY} = process.env
 
 const auth = async (req, res, next) => {
     const { authorization = "" } = req.headers
