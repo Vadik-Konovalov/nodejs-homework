@@ -1,26 +1,36 @@
-const { User } = require("../../models")
-const createAndUpdateJWT = require("../../utils/jwt/createAndUpdateJWT")
-const newError = require("../../utils/newError")
-const setPassword = require("../../utils/setPassword")
+const { Conflict } = require("http-errors");
+const gravatar = require("gravatar");
+
+const { User } = require("../../models/users");
 
 const register = async (req, res) => {
-    const { email, password } = req.body
-    const user = await User.findOne({ email })
-    if(user) {
-        newError(409,`User whith email:${email} already exist`)
-    }
-    const hashPass = setPassword(password)
-    const newUser = await User.create({ email, password: hashPass })
-    const token = await createAndUpdateJWT(newUser._id)
+  const { email, password, subscription } = req.body;
+  const user = await User.findOne({ email });
+  if (user) {
+    throw new Conflict(`User with ${email} already exsist`);
+  }
+  
 
-    res.status(201).json({
-        status: 'success',
-        code: 201,
-        data: {
-            email,
-            token
-        }
-    })
-}
+  const avatarURL = gravatar.url(email);
+  const newUser = new User({ email, subscription, avatarURL });
 
-module.exports = register
+ 
+  newUser.setPassword(password);
+
+  await newUser.save();
+
+  res.status(201).json({
+    status: "success",
+    code: 201,
+    date: {
+      user: {
+        email,
+        subscription,
+        avatarURL
+      },
+    },
+    
+  });
+};
+
+module.exports = register;
