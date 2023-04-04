@@ -1,23 +1,33 @@
-const { User } = require("../../models")
-const createAndUpdateJWT = require('../../utils/jwt/createAndUpdateJWT')
-const newError = require("../../utils/newError")
+const { Unauthorized } = require("http-errors");
+const jwt = require("jsonwebtoken");
+
+
+const { User } = require("../../models/users");
+
+const { SECRET_KEY } = process.env;
 
 const login = async (req, res) => {
-    const { email, password } = req.body
-    const user = await User.findOne({ email })
-    if (!user || !user.comparePassword(password)) {
-        newError(401, 'Invalid email or password')
-    }
-    const token = await createAndUpdateJWT(user._id)
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
 
-    res.json({
-        status: 'success',
-        code: 200,
-        data: {
-            email,
-            token
-        }
-    })
-}
+  if (!user || !user.comparePassword(password)) {
+    throw new Unauthorized("Email or password is wrong");
+  }
 
-module.exports = login
+  
+
+  const payload = {
+    id: user._id,
+  };
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "1w" });
+  await User.findByIdAndUpdate(user._id, { token });
+  res.json({
+    status: "success",
+    code: 200,
+    data: {
+      token,
+    },
+  });
+};
+
+module.exports = login;

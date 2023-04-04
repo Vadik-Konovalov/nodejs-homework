@@ -1,19 +1,31 @@
-const jwt = require("jsonwebtoken")
+const { Unauthorized } = require("http-errors");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const {User} = require("../models")
-const verifyJWT = require("../utils/jwt/verifyJWT")
-const newError = require("../utils/newError")
-const {SECRET_KEY} = process.env
+const { User } = require("../models/users");
+
+const { SECRET_KEY } = process.env;
 
 const auth = async (req, res, next) => {
-    const { authorization = "" } = req.headers
-    const [bearer, token] = authorization.split(" ")
-    if (bearer !== "Bearer") newError(401, "Not authorizad")
-    const id = verifyJWT(token)
-    const user = await User.findById(id)
-    if (!user || token !== user.token ) newError(401, "Not authorizad")
-    req.user = user
-    next()
-}
+  const [bearer, token] = req.headers.authorization?.split(" ") ?? [];
 
-module.exports = auth
+  try {
+    if (bearer !== "Bearer") {
+      throw new Unauthorized("Not authorized");
+    }
+    const { id } = jwt.verify(token, SECRET_KEY);
+    const user = await User.findById(id);
+    if (!user || !user.token) {
+      throw new Unauthorized("Not authorized");
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    if (error.message === "Invalid signature") {
+      error.status = 401;
+    }
+    next(error);
+  }
+};
+
+module.exports = auth;
